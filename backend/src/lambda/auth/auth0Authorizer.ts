@@ -54,8 +54,7 @@ export const handler = async (
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const token = getToken(authHeader)
-  const jwt: Jwt = decode(token, { complete: true }) as Jwt
-
+  const jwt = decode(token, { complete: true }) as Jwt
   const kid = jwt.header.kid;
 
   const certificate = await getCert(kid);
@@ -81,6 +80,7 @@ function getSigningKey(keys: Jwk[], kid): Jwk {
   const signingKeys = keys
       .filter(key => key.use === 'sig'
           && key.kty === 'RSA'
+          && key.alg === 'RS256'
           && key.kid
           && ((key.x5c && key.x5c.length) || (key.n && key.e))
       )
@@ -90,7 +90,7 @@ function getSigningKey(keys: Jwk[], kid): Jwk {
     throw new Error('No signing keys found');
   }
 
-  const signingKey =  keys.find(key => key.kid === kid);
+  const signingKey = signingKeys.find(key => key.kid === kid);
 
   if (!signingKey) {
     logger.error('Unable to find a signing key');
@@ -106,7 +106,7 @@ async function getCert(kid: string): Promise<string> {
   logger.info('Fetching certificate');
 
   const response = await axios.get(jwksUrl);
-  const keys: Jwk[] = response.data.keys;
+  const keys = response.data.keys as Jwk[];
 
   if (!keys || !keys.length) {
     logger.error("Error fetching certificate");
@@ -119,6 +119,5 @@ async function getCert(kid: string): Promise<string> {
   certificate = convertCertToPEM(pub);
 
   logger.info("Certificate found");
-
   return certificate;
 }

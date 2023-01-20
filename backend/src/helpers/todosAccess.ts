@@ -12,7 +12,8 @@ const logger = createLogger('TodosAccess')
 export class TodosAccess {
     constructor(
         private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
-        private readonly todosTable: string = process.env.TODOS_TABLE
+        private readonly todosTable: string = process.env.TODOS_TABLE,
+        private readonly s3Bucket: string = process.env.ATTACHMENT_S3_BUCKET,
     ) {}
 
     async getUserTodos(userId: string): Promise<TodoItem[]> {
@@ -77,10 +78,10 @@ export class TodosAccess {
         }).promise();
     }
 
-    async updateTodoWithAttachment(userId: string, todoId: string, s3Bucket: string): Promise<void> {
+    async updateTodoWithAttachment(userId: string, todoId: string): Promise<void> {
         logger.info(`Updating todo ${todoId} with attachment`);
 
-        const attachmentUrl: string = `https://${s3Bucket}.s3.amazonaws.com/${todoId}`
+        const attachmentUrl: string = `https://${this.s3Bucket}.s3.amazonaws.com/${todoId}`
 
         await this.docClient.update({
             TableName: this.todosTable,

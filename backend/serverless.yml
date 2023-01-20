@@ -18,8 +18,6 @@ provider:
     lambda: true
     apiGateway: true
 
-  # Use these variables in the functions and resources section below. For example,
-  # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
@@ -28,7 +26,6 @@ provider:
     JWKS_URL: https://alfredasare.us.auth0.com/.well-known/jwks.json
 
   logs:
-    # Enable API Gateway logs
     restApi: true
 
   iam:
@@ -150,11 +147,11 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
           - AttributeName: todoId
             AttributeType: S
           - AttributeName: createdAt
-            AttributeType: S
-          - AttributeName: userId
             AttributeType: S
         KeySchema:
           - AttributeName: userId
@@ -164,7 +161,7 @@ resources:
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
         LocalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.TODOS_INDEX}
+          - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
             KeySchema:
               - AttributeName: userId
                 KeyType: HASH
@@ -201,9 +198,10 @@ resources:
           Id: S3AttachmentBucketPolicy
           Version: "2012-10-17"
           Statement:
-            - Sid: PublicReadForGetBucketObjects
+            - Sid: PublicReadAndPutForBucketObjects
               Effect: Allow
               Principal: '*'
-              Action: 's3:GetObject'
-              Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*'
-          Bucket: !Ref AttachmentsBucket
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
