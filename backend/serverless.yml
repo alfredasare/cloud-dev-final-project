@@ -39,6 +39,15 @@ provider:
             - xray:PutTraceSegments
           Resource: "*"
 
+custom:
+  documentation:
+    models:
+      - name: CreateTodoRequest
+        contentType: application/json
+        schema: ${file(models/create-todo-model.json)}
+      - name: UpdateTodoRequest
+        contentType: application/json
+        schema: ${file(models/update-todo-model.json)}
 
 functions:
 
@@ -73,7 +82,7 @@ functions:
             summary: Create a new todo
             description: Create a new todo
             requestModels:
-              'application/json': CreateTodoRequest
+              "application/json": CreateTodoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -94,7 +103,7 @@ functions:
             summary: Update a todo
             description: Update a todo
             requestModels:
-              'application/json': UpdateTodoRequest
+              "application/json": UpdateTodoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -135,16 +144,6 @@ functions:
         Action:
           - dynamodb:UpdateItem
         Resource: !GetAtt TodosTable.Arn
-
-custom:
-  documentation:
-    models:
-      - name: CreateTodoRequest
-        contentType: application/json
-        schema: ${file(models/create-todo-model.json)}
-      - name: UpdateTodoRequest
-        contentType: application/json
-        schema: ${file(models/update-todo-model.json)}
 
 resources:
   Resources:
